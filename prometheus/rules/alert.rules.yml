@@ -1,0 +1,48 @@
+groups:
+  - name: host
+    interval: 30s
+    rules:
+      - alert: TargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Target {{ $labels.job }} is down"
+          description: "{{ $labels.instance }} has been unreachable for more than 2 minutes."
+
+      - alert: HighCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on {{ $labels.instance }}"
+          description: "CPU above 85% for 5 minutes. Current: {{ $value | printf \"%.1f\" }}%"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory on {{ $labels.instance }}"
+          description: "Memory above 90%. Current: {{ $value | printf \"%.1f\" }}%"
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs"} / node_filesystem_size_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space low on {{ $labels.instance }}"
+          description: "{{ $labels.mountpoint }} is {{ $value | printf \"%.1f\" }}% full."
+
+      - alert: DiskWillFillIn24Hours
+        expr: predict_linear(node_filesystem_avail_bytes{fstype!~"tmpfs"}[6h], 24 * 3600) < 0
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk will fill within 24h on {{ $labels.instance }}"
+          description: "{{ $labels.mountpoint }} predicted to be full in less than 24 hours."

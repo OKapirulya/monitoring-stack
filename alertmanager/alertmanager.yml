@@ -1,0 +1,64 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: "smtp.gmail.com:587"
+  smtp_from: "alertmanager@gmail.com"
+  smtp_auth_username: "alertmanager@gmail.com"
+  smtp_auth_password: "${SMTP_PASSWORD}"
+  smtp_require_tls: true
+
+templates:
+  - "/etc/alertmanager/templates/*.tmpl"
+
+route:
+  receiver: "default"
+  group_by: ["alertname", "environment", "job"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+  routes:
+    - receiver: "critical-email"
+      matchers:
+        - severity = "critical"
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: false
+
+    - receiver: "warning-email"
+      matchers:
+        - severity = "warning"
+      group_wait: 30s
+      repeat_interval: 6h
+      continue: false
+
+receivers:
+  - name: "default"
+    email_configs:
+      - to: "deine-email@gmail.com"
+        send_resolved: true
+        headers:
+          Subject: "[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}"
+
+  - name: "critical-email"
+    email_configs:
+      - to: "deine-email@gmail.com"
+        send_resolved: true
+        headers:
+          Subject: "[CRITICAL] {{ .CommonLabels.alertname }} - {{ .CommonLabels.environment }}"
+
+  - name: "warning-email"
+    email_configs:
+      - to: "deine-email@gmail.com"
+        send_resolved: true
+        headers:
+          Subject: "[WARNING] {{ .CommonLabels.alertname }}"
+
+inhibit_rules:
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal:
+      - alertname
+      - environment
+      - job

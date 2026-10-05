@@ -125,6 +125,7 @@ services:
       - "127.0.0.1:12345:12345"
     networks:
       - monitoring
+      - monitoring-bridge
     depends_on:
       loki:
         condition: service_healthy

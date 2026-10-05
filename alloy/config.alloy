@@ -1,25 +1,30 @@
-// Discover running Docker containers
-discovery.docker "containers" {
-  host             = "unix:///var/run/docker.sock"
-  refresh_interval = "10s"
+// Discover all running Docker containers
+discovery.docker "linux" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// Define relabeling rules to extract service_name from container name
+discovery.relabel "logs_integrations_docker" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "service_name"
+  }
 }
 
 // Read logs from Docker containers
-loki.source.docker "docker_logs" {
-  host       = "unix:///var/run/docker.sock"
-  targets    = discovery.docker.containers.targets
-  forward_to = [loki.process.parse_logs.receiver]
+loki.source.docker "default" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.linux.targets
+  labels        = {"platform" = "docker"}
+  relabel_rules = discovery.relabel.logs_integrations_docker.rules
+  forward_to    = [loki.process.parse_logs.receiver]
 }
 
-// Parse JSON logs, filter to inventory-api only, extract level as label
+// Parse JSON logs and extract level as label
 loki.process "parse_logs" {
-  // Drop all logs that are NOT from inventory-api
-  stage.match {
-    selector = "{container_name!=\"inventory-api\"}"
-    action   = "drop"
-  }
-
-  // Parse pino JSON logs
   stage.json {
     expressions = {
       level = "level",
@@ -27,7 +32,6 @@ loki.process "parse_logs" {
     }
   }
 
-  // Promote level to a Loki label for filtering: {level="error"}
   stage.labels {
     values = {
       level = "level",

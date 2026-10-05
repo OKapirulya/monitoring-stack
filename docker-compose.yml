@@ -8,9 +8,10 @@ volumes:
   prometheus-data:
   grafana-data:
   alertmanager-data:
+  loki-data:
+  alloy-data:
 
 services:
-
   prometheus:
     image: prom/prometheus:v3.3.1
     container_name: prometheus
@@ -55,6 +56,8 @@ services:
     depends_on:
       prometheus:
         condition: service_healthy
+      loki:
+        condition: service_healthy
 
   node-exporter:
     image: prom/node-exporter:v1.9.1
@@ -90,3 +93,38 @@ services:
       - "127.0.0.1:9093:9093"
     networks:
       - monitoring
+
+  loki:
+    image: grafana/loki:3.5.9
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki-data:/loki
+    ports:
+      - "127.0.0.1:3100:3100"
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  alloy:
+    image: grafana/alloy:v1.20.0
+    container_name: alloy
+    restart: unless-stopped
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy
+    ports:
+      - "127.0.0.1:12345:12345"
+    networks:
+      - monitoring
+    depends_on:
+      loki:
+        condition: service_healthy

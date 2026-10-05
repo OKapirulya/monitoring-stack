@@ -1,0 +1,44 @@
+// Discover running Docker containers
+discovery.docker "containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "10s"
+}
+
+// Read logs from Docker containers
+loki.source.docker "docker_logs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.containers.targets
+  forward_to = [loki.process.parse_logs.receiver]
+}
+
+// Parse JSON logs, filter to inventory-api only, extract level as label
+loki.process "parse_logs" {
+  stage.match {
+    selector = "{container_name=\"inventory-api\"}"
+    action   = "keep"
+  }
+
+  // Parse pino JSON logs
+  stage.json {
+    expressions = {
+      level = "level",
+      msg   = "msg",
+    }
+  }
+
+  // Promote level to a Loki label for filtering: {level="error"}
+  stage.labels {
+    values = {
+      level = "level",
+    }
+  }
+
+  forward_to = [loki.write.loki.receiver]
+}
+
+// Send logs to Loki
+loki.write "loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

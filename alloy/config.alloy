@@ -13,9 +13,10 @@ loki.source.docker "docker_logs" {
 
 // Parse JSON logs, filter to inventory-api only, extract level as label
 loki.process "parse_logs" {
+  // Drop all logs that are NOT from inventory-api
   stage.match {
-    selector = "{container_name=\"inventory-api\"}"
-    action   = "keep"
+    selector = "{container_name!=\"inventory-api\"}"
+    action   = "drop"
   }
 
   // Parse pino JSON logs

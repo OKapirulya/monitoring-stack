@@ -1,8 +1,8 @@
 global:
   resolve_timeout: 5m
   smtp_smarthost: "smtp.gmail.com:587"
-  smtp_from: "alertmanager@gmail.com"
-  smtp_auth_username: "alertmanager@gmail.com"
+  smtp_from: "${SMTP_FROM}"
+  smtp_auth_username: "${SMTP_FROM}"
   smtp_auth_password: "${SMTP_PASSWORD}"
   smtp_require_tls: true
 
@@ -34,21 +34,21 @@ route:
 receivers:
   - name: "default"
     email_configs:
-      - to: "deine-email@gmail.com"
+      - to: "${ALERT_EMAIL}"
         send_resolved: true
         headers:
           Subject: "[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}"
 
   - name: "critical-email"
     email_configs:
-      - to: "deine-email@gmail.com"
+      - to: "${ALERT_EMAIL}"
         send_resolved: true
         headers:
           Subject: "[CRITICAL] {{ .CommonLabels.alertname }} - {{ .CommonLabels.environment }}"
 
   - name: "warning-email"
     email_configs:
-      - to: "deine-email@gmail.com"
+      - to: "${ALERT_EMAIL}"
         send_resolved: true
         headers:
           Subject: "[WARNING] {{ .CommonLabels.alertname }}"

@@ -23,8 +23,15 @@ loki.source.docker "default" {
   forward_to    = [loki.process.parse_logs.receiver]
 }
 
-// Parse JSON logs and extract level as label
+// Parse JSON logs, filter to inventory-api only, extract level as label
 loki.process "parse_logs" {
+  // Drop all logs that are NOT from inventory-api
+  stage.match {
+    selector = "{service_name!=\"inventory-api\"}"
+    action   = "drop"
+  }
+
+  // Parse pino JSON logs
   stage.json {
     expressions = {
       level = "level",
@@ -32,6 +39,7 @@ loki.process "parse_logs" {
     }
   }
 
+  // Promote level to a Loki label for filtering: {level="error"}
   stage.labels {
     values = {
       level = "level",

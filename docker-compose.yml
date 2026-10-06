@@ -86,6 +86,8 @@ services:
       - "--storage.path=/alertmanager"
     environment:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
+      - ALERT_EMAIL=${ALERT_EMAIL}
     volumes:
       - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager

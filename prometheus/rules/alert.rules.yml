@@ -46,3 +46,30 @@ groups:
         annotations:
           summary: "Disk will fill within 24h on {{ $labels.instance }}"
           description: "{{ $labels.mountpoint }} predicted to be full in less than 24 hours."
+
+  - name: inventory-api
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_requests_total{job="inventory-api", ok="false"}[5m]))
+          /
+          sum(rate(http_requests_total{job="inventory-api"}[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on inventory-api"
+          description: "More than 10% of requests are failing. Current: {{ $value | printf \"%.1f\" }}%"
+
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.99,
+            sum by(le) (rate(http_request_duration_seconds_bucket{job="inventory-api"}[5m]))
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P99 response time on inventory-api"
+          description: "P99 response time above 500ms. Current: {{ $value | printf \"%.3f\" }}s"

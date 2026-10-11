@@ -6,9 +6,6 @@ global:
   smtp_auth_password: "$SMTP_PASSWORD"
   smtp_require_tls: true
 
-templates:
-  - "/etc/alertmanager/templates/*.tmpl"
-
 route:
   receiver: "default"
   group_by: ["alertname", "environment", "job"]

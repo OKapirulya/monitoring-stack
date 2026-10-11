@@ -58,7 +58,7 @@ Alertmanager uses Gmail SMTP to send alert emails. A regular Gmail password will
 1. Go to your Google Account -> Security -> 2-Step Verification
 2. Scroll to the bottom and click App passwords
 3. Create a new password, name it something like "Alertmanager"
-4. Copy the generated password into `alertmanager/alertmanager.yml` and your `.env` file
+4. Copy the generated password into `alertmanager/alertmanager.yml`
 
 ### Alertmanager config
 

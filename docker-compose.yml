@@ -81,14 +81,11 @@ services:
     image: prom/alertmanager:v0.28.1
     container_name: alertmanager
     restart: unless-stopped
-    entrypoint: ["/etc/alertmanager/docker-entrypoint.sh"]
-    environment:
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - SMTP_FROM=${SMTP_FROM}
-      - ALERT_EMAIL=${ALERT_EMAIL}
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
     volumes:
-      - ./alertmanager/alertmanager.yml.template:/etc/alertmanager/alertmanager.yml.template:ro
-      - ./alertmanager/docker-entrypoint.sh:/etc/alertmanager/docker-entrypoint.sh:ro
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager-data:/alertmanager
     ports:
       - "127.0.0.1:9093:9093"

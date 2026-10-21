@@ -60,7 +60,7 @@ groups:
           severity: critical
         annotations:
           summary: "High error rate on inventory-api"
-          description: "More than 10% of requests are failing. Current: {{ $value | printf \"%.1f\" }}%"
+          description: "More than 10% of requests are failing. Current: {{ $value | humanizePercentage }}"
 
       - alert: HighResponseTime
         expr: |

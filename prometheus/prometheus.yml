@@ -6,12 +6,12 @@ global:
     environment: "production"
     project: "inventory-api"
 
-alerting:
-  alertmanagers:
-    - static_configs:
-        - targets:
-            - alertmanager:9093
-      timeout: 10s
+#alerting:
+ # alertmanagers:
+  #  - static_configs:
+   #     - targets:
+    #        - alertmanager:9093
+     # timeout: 10s
 
 rule_files:
   - "rules/*.yml"

@@ -77,20 +77,20 @@ services:
     networks:
       - monitoring
 
-  alertmanager:
-    image: prom/alertmanager:v0.28.1
-    container_name: alertmanager
-    restart: unless-stopped
-    command:
-      - "--config.file=/etc/alertmanager/alertmanager.yml"
-      - "--storage.path=/alertmanager"
-    volumes:
-      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-      - alertmanager-data:/alertmanager
-    ports:
-      - "127.0.0.1:9093:9093"
-    networks:
-      - monitoring
+  #alertmanager:
+   # image: prom/alertmanager:v0.28.1
+    #container_name: alertmanager
+    #restart: unless-stopped
+    #command:
+     # - "--config.file=/etc/alertmanager/alertmanager.yml"
+     # - "--storage.path=/alertmanager"
+    #volumes:
+     # - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+     # - alertmanager-data:/alertmanager
+    #ports:
+     # - "127.0.0.1:9093:9093"
+    #networks:
+     # - monitoring
 
   loki:
     image: grafana/loki:3.5.9
